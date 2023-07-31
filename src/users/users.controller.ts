@@ -28,10 +28,10 @@ export class UsersController {
     return this.usersService.registration(createUserDto, res);
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
-  }
+  // @Get()
+  // findAll() {
+  //   return this.usersService.findAll();
+  // }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

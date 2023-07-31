@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+// import { UsersService } from './users.service';
+import { Body, Injectable, Post } from '@nestjs/common';
 import { BadGatewayException } from '@nestjs/common/exceptions';
 import { InjectModel } from '@nestjs/sequelize';
 import { Response } from 'express';
@@ -79,9 +80,17 @@ export class UsersService {
     };
   }
 
-  findAll() {
-    return `This action returns all users`;
-  }
+  // findAll() {
+  //   return `This action returns all users`;
+  // }
+
+  // @ApiOperation({ summary: "Booking qo'shish" })
+  // @ApiResponse({ status: 201, type: Booking })
+  // @UseGuards(adminGuard)
+  // @Post()
+  // create(@Body() createuserDto: CreateUserDto) {
+  //   return this.usersService.registration(createuserDto);
+  // }
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
