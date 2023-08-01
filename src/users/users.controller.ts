@@ -1,3 +1,6 @@
+import { FindUserDto } from './dto/find-user.dto';
+import { CookieGetter } from './../decorators/cookieGetter.decorators';
+import { LoginUserDto } from './dto/login.userdto';
 import {
   Controller,
   Get,
@@ -12,15 +15,16 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './models/user.model';
-import { Res } from '@nestjs/common/decorators';
+import { HttpCode, Res } from '@nestjs/common/decorators';
 import { Response } from 'express';
+import { HttpStatus } from '@nestjs/common/enums';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   @ApiOperation({ summary: 'register User' })
   @ApiResponse({ status: 201, type: User })
-  @Post('signup')
+  @Post('signin')
   regist(
     @Body() createUserDto: CreateUserDto,
     @Res({ passthrough: true }) res: Response,
@@ -28,10 +32,45 @@ export class UsersController {
     return this.usersService.registration(createUserDto, res);
   }
 
+  @ApiOperation({ summary: 'login User' })
+  @ApiResponse({ status: 200, type: User })
+  @Post('signip')
+  login(
+    @Body() loginUserDto: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.usersService.login(loginUserDto, res);
+  }
+
+  @ApiOperation({ summary: 'logout User' })
+  @ApiResponse({ status: 200, type: User })
+  @HttpCode(HttpStatus.OK)
+  @Post('signout')
+  logout(
+    @CookieGetter('refresh_token') refreshToken: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.usersService.logout(refreshToken, res);
+  }
+
+  @Post(':id/refresh')
+  refresh(
+    @Param('id') id: string,
+    @CookieGetter('refresh_token') refreshToken: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.usersService.refreshToken(+id, refreshToken, res);
+  }
+
   // @Get()
   // findAll() {
   //   return this.usersService.findAll();
   // }
+
+  @Post('find')
+  finAll(@Body() findUserDto: FindUserDto) {
+    return this.usersService.findAll(findUserDto);
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

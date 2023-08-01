@@ -5,6 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 import { User } from './users/models/user.model';
 import { ComfortModule } from './comfort/comfort.module';
 import { Comfort } from './comfort/models/comfort.module';
+import { ComfortStadiumModule } from './comfort_stadium/comfort_stadium.module';
+import { MailService } from './mail/mail.service';
 
 @Module({
   imports: [
@@ -22,8 +24,9 @@ import { Comfort } from './comfort/models/comfort.module';
     }),
     UsersModule,
     ComfortModule,
+    ComfortStadiumModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [MailService],
 })
 export class AppModule {}

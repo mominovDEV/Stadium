@@ -28,7 +28,7 @@ export class CreateUserDto {
   confirm_password: string;
 
   @ApiProperty({ example: 1, description: 'Unique ID' })
-  @IsStrongPassword()
+  // @IsStrongPassword()
   password: string;
 
   @ApiProperty({ example: 'asdfa@gmail.com', description: 'Unique ID' })
@@ -40,6 +40,6 @@ export class CreateUserDto {
   phone: string;
 
   @ApiProperty({ example: '01.01.23', description: 'Unique ID' })
-  @IsDateString()
+  // @IsDateString()
   birthday: Date;
 }
