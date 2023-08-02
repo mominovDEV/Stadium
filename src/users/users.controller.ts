@@ -1,3 +1,4 @@
+import { UserGuard } from './../guards/user.guard';
 import { FindUserDto } from './dto/find-user.dto';
 import { CookieGetter } from './../decorators/cookieGetter.decorators';
 import { LoginUserDto } from './dto/login.userdto';
@@ -15,7 +16,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './models/user.model';
-import { HttpCode, Res } from '@nestjs/common/decorators';
+import { HttpCode, Res, UseGuards } from '@nestjs/common/decorators';
 import { Response } from 'express';
 import { HttpStatus } from '@nestjs/common/enums';
 @ApiTags('Users')
@@ -31,7 +32,7 @@ export class UsersController {
   ) {
     return this.usersService.registration(createUserDto, res);
   }
-
+  //
   @ApiOperation({ summary: 'login User' })
   @ApiResponse({ status: 200, type: User })
   @Post('signip')
@@ -42,6 +43,7 @@ export class UsersController {
     return this.usersService.login(loginUserDto, res);
   }
 
+  //  LOGOUT
   @ApiOperation({ summary: 'logout User' })
   @ApiResponse({ status: 200, type: User })
   @HttpCode(HttpStatus.OK)
@@ -53,6 +55,8 @@ export class UsersController {
     return this.usersService.logout(refreshToken, res);
   }
 
+  //  REFRESH
+  @UseGuards(UserGuard)
   @Post(':id/refresh')
   refresh(
     @Param('id') id: string,
@@ -62,10 +66,13 @@ export class UsersController {
     return this.usersService.refreshToken(+id, refreshToken, res);
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
+  //  ACTIVATE
+  @ApiOperation({ summary: 'activate User' })
+  @ApiResponse({ status: 200, type: [User] })
+  @Get('activate/:link')
+  activate(@Param('link') link: string) {
+    return this.usersService.activate(link);
+  }
 
   @Post('find')
   finAll(@Body() findUserDto: FindUserDto) {

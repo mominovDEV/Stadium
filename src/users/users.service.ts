@@ -93,7 +93,28 @@ export class UsersService {
       refreshToken: refreshToken,
     };
   }
+  /////////////////////////////////////////////////////////
+  async activate(link: string) {
+    if (!link) {
+      throw new BadGatewayException('activation link not found');
+    }
 
+    const updatedUser = await this.userRepo.update(
+      { is_active: true },
+      { where: { activation_link: link, is_active: false }, returning: true },
+    );
+
+    if (!updatedUser[1][0]) {
+      throw new BadGatewayException('user already activated');
+    }
+
+    const response = {
+      message: 'User activated successfully',
+      user: updatedUser,
+    };
+    return response;
+  }
+  //////////////////////////////////////////////////s
   async login(loginUserDto: LoginUserDto, res: Response) {
     const user = await this.userRepo.findOne({
       where: { email: loginUserDto.email },

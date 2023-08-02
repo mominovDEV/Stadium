@@ -7,6 +7,7 @@ import { ComfortModule } from './comfort/comfort.module';
 import { Comfort } from './comfort/models/comfort.module';
 import { ComfortStadiumModule } from './comfort_stadium/comfort_stadium.module';
 import { MailService } from './mail/mail.service';
+import { BotModule } from './bot/bot.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MailService } from './mail/mail.service';
     UsersModule,
     ComfortModule,
     ComfortStadiumModule,
+    BotModule,
   ],
   controllers: [],
   providers: [MailService],
