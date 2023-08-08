@@ -1,28 +1,39 @@
+import { VeifyOtpDto } from './dto/verifyOtp.dto';
+import { PhoneUserDto } from './dto/phone-user.dto';
+import { BotService } from './../bot/bot.service';
 import { FindUserDto } from './dto/find-user.dto';
 import { LoginUserDto } from './dto/login.userdto';
 // import { UsersService } from './users.service';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   BadGatewayException,
   ForbiddenException,
+  HttpException,
 } from '@nestjs/common/exceptions';
 import { InjectModel } from '@nestjs/sequelize';
-import { response, Response } from 'express';
+import { Response } from 'express';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './models/user.model';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
+import * as otpGenerator from 'otp-generator';
+
+import { v4 as uuidv4, v4 } from 'uuid';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtService } from '@nestjs/jwt/dist';
 import { Op } from 'sequelize';
-import { MailModule } from '../mail/mail.module';
 import { MailService } from '../mail/mail.service';
+import { Otp } from '../otp/model/otp.model';
+import { AddMinutesToDate } from '../helpers/addminutes';
+import { dates, decode, encode } from '../helpers/crypto';
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User) private readonly userRepo: typeof User,
+    @InjectModel(Otp) private readonly otpRepo: typeof Otp,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    private readonly botService: BotService,
   ) {}
   async registration(createUserDto: CreateUserDto, res: Response) {
     const user = await this.userRepo.findOne({
@@ -246,6 +257,80 @@ export class UsersService {
       throw new BadRequestException('user not fo');
     }
     return users;
+  }
+
+  async newOTP(phoneUserDto: PhoneUserDto) {
+    const phone_number = phoneUserDto.phone;
+    const otp = otpGenerator.generate(4, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false,
+    });
+    const isSend = await this.botService.sendOTP(phone_number, otp);
+
+    if (!isSend) {
+      throw new HttpException(
+        "Avval Botdan ro'yhatdan o'ting",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const now = new Date();
+    const expiration_time = AddMinutesToDate(now, 5);
+    await this.otpRepo.destroy({
+      where: { check: phone_number },
+    });
+    const newOTP = await this.otpRepo.create({
+      id: v4(),
+      otp,
+      expiration_time,
+      check: phone_number,
+    });
+
+    const details = {
+      timestamp: now,
+      check: phone_number,
+      success: true,
+      message: 'OTP sent to user',
+      otp_id: newOTP.id,
+    };
+    const encoded = await encode(JSON.stringify(details));
+    return { status: 'success', Details: encoded };
+  }
+
+  async verifyOtp(verifyOtpDto: VeifyOtpDto) {
+    const { check, otp, veification_key } = verifyOtpDto;
+    const currentDate = new Date();
+    const decoded = await decode(veification_key);
+    const obj = JSON.parse(decoded);
+    if (check !== obj.check) {
+      throw new BadRequestException('OTP has not been sent to this phone');
+    }
+    const otpFromDB = await this.otpRepo.findOne({
+      where: { id: obj.otp_id },
+    });
+    if (!otpFromDB) {
+      throw new BadRequestException('otp is not found');
+    }
+    if (otpFromDB.verified) {
+      throw new BadRequestException('otp is already used');
+    }
+    if (!dates.compare(otpFromDB.expiration_time, currentDate)) {
+      throw new BadRequestException('Otp is expired');
+    }
+    if (otp !== otpFromDB.otp) {
+      throw new BadRequestException('Otp is not matched');
+    }
+    const user = await this.userRepo.findOne({ where: { phone: check } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    const updatedUser = await user.update({ is_owner: true });
+    await this.otpRepo.update(
+      { verified: true },
+      { where: { id: obj.otp_id } },
+    );
+
+    return { message: 'User updated to owner', user: updatedUser };
   }
 
   // @ApiOperation({ summary: "Booking qo'shish" })

@@ -1,3 +1,5 @@
+import { VeifyOtpDto } from './dto/verifyOtp.dto';
+import { PhoneUserDto } from './dto/phone-user.dto';
 import { UserGuard } from './../guards/user.guard';
 import { FindUserDto } from './dto/find-user.dto';
 import { CookieGetter } from './../decorators/cookieGetter.decorators';
@@ -92,5 +94,15 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
+  }
+
+  @Post('/otp')
+  newOTP(@Body() phoneUserDto: PhoneUserDto) {
+    return this.usersService.newOTP(phoneUserDto);
+  }
+
+  @Post('/verify')
+  verifyOtp(@Body() veifyOtpDto: VeifyOtpDto) {
+    return this.usersService.verifyOtp(veifyOtpDto);
   }
 }

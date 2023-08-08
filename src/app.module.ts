@@ -10,6 +10,9 @@ import { ComfortStadiumModule } from './comfort_stadium/comfort_stadium.module';
 import { MailService } from './mail/mail.service';
 import { BotModule } from './bot/bot.module';
 import { TelegrafModule } from 'nestjs-telegraf';
+import { Bot } from './bot/model/bot.model';
+import { OtpModule } from './otp/otp.module';
+import { Otp } from './otp/model/otp.model';
 
 @Module({
   imports: [
@@ -29,7 +32,7 @@ import { TelegrafModule } from 'nestjs-telegraf';
       username: process.env.POSTGRES_USER,
       password: String(process.env.POSTGRES_PASSWORD),
       database: process.env.POSTGRES_DB,
-      models: [User, Comfort],
+      models: [User, Comfort, Bot, Otp],
       autoLoadModels: true,
       logging: false,
     }),
@@ -37,6 +40,7 @@ import { TelegrafModule } from 'nestjs-telegraf';
     ComfortModule,
     ComfortStadiumModule,
     BotModule,
+    OtpModule,
   ],
   controllers: [],
   providers: [MailService],
